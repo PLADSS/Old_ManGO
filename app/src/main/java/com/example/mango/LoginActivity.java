@@ -29,24 +29,17 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private ProgressDialog progressDialog;
 
-    //firebase auth
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding= ActivityLoginBinding.inflate(getLayoutInflater());
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        //init firebase auth
         firebaseAuth = FirebaseAuth.getInstance();
-        //setup progress dialog
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("Lütfen Bekleyin");
         progressDialog.setCancelable(false);
 
-
-        // click eventi , kayıt ekranına git
         binding.noAccountTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -54,7 +47,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        //click eventi , Girişe başla
         binding.loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,74 +55,73 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private String email ="",password="";
+    private String email = "", password = "";
     private void validateData() {
-        //get data
         email = binding.emailEt.getText().toString().trim();
         password = binding.passwordEt.getText().toString().trim();
 
-        //validate data
-         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this,"Hatalı E-mail",Toast.LENGTH_SHORT).show();
+        if (TextUtils.isEmpty(email)) {
+            Toast.makeText(this, "Lütfen bir E-mail girin", Toast.LENGTH_SHORT).show();
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            Toast.makeText(this, "Hatalı E-mail", Toast.LENGTH_SHORT).show();
         } else if (TextUtils.isEmpty(password)) {
-            Toast.makeText(this,"Lütfen bir Şifre girin",Toast.LENGTH_SHORT).show();
-        }else {
-             loginUser();
-         }
-
+            Toast.makeText(this, "Lütfen bir Şifre girin", Toast.LENGTH_SHORT).show();
+        } else {
+            loginUser();
+        }
     }
 
     private void loginUser() {
-        //show progress
         progressDialog.setMessage("Giriş yapılıyor");
         progressDialog.show();
 
-        //login user
-        firebaseAuth.signInWithEmailAndPassword(email,password)
+        firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-                        //Giriş sağlandı , kullanıcı User mı Admin mi kontrol et
                         checkUser();
-
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         progressDialog.dismiss();
-                        Toast.makeText(LoginActivity.this,""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
     private void checkUser() {
-        //kullanıcı User mı Admin mi kontrol et
-        //get user
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-        //Db kontrol et
+        if (firebaseUser == null) {
+            progressDialog.dismiss();
+            Toast.makeText(LoginActivity.this, "Giriş yapılamadı, lütfen tekrar deneyin.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users");
         ref.child(firebaseUser.getUid())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        //Kullanıcı türünü getir
-                        String userType =""+snapshot.child("userType").getValue();
-                        // Kullanıcı türünü kontrol et
-                        if (userType.equals("user")){
-                            //Normal kullanıcı UserDashvoradı aç
-                            startActivity(new Intent(LoginActivity.this,DashboardUserActivity.class));
-                            finish();
-                        }else if (userType.equals("admin")){
-                            //Yetkili kullanıcı AdminDashboard aç
-                            startActivity(new Intent(LoginActivity.this,DashboardAdminActivity.class));
-                            finish();
-                        }
+                        progressDialog.dismiss();
 
+                        String userType = "" + snapshot.child("userType").getValue();
+
+                        if ("user".equals(userType)) {
+                            startActivity(new Intent(LoginActivity.this, DashboardUserActivity.class));
+                            finish();
+                        } else if ("admin".equals(userType)) {
+                            startActivity(new Intent(LoginActivity.this, DashboardAdminActivity.class));
+                            finish();
+                        } else {
+                            Toast.makeText(LoginActivity.this, "Geçersiz kullanıcı türü.", Toast.LENGTH_SHORT).show();
+                        }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-
+                        progressDialog.dismiss();
+                        Toast.makeText(LoginActivity.this, "Veritabanı hatası: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }

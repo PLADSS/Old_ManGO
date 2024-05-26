@@ -42,6 +42,17 @@
             android:background="@drawable/shape_button01"/>
 
     </RelativeLayout>
+    <!--Categories-->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/categoriesRv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbarRL"
+        tools:listitem="@layout/row_category"
+        app:layoutManager ="androidx.recyclerview.widget.LinearLayoutManager"
+        android:layout_above="@+id/bottomLl"/>
+
+
 
     <LinearLayout
         android:id="@+id/bottomLl"

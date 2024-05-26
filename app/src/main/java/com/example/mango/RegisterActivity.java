@@ -46,7 +46,7 @@ public class RegisterActivity extends AppCompatActivity {
         progressDialog.setTitle("Lütfen Bekleyin");
         progressDialog.setCancelable(false);
 
-        //click eventi, Geri dön
+        //handle click, go back
         binding.backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -54,7 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        // click eventi ile Kayıt Başlatma
+        // handle click, begin register
         binding.registerBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
